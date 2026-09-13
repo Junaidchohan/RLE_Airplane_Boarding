@@ -22,32 +22,59 @@ export default function Dashboard() {
   const startTimeRef = useRef<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
 
-  // Poll state on mount
+  // Health check: retry every 5s until connected, then poll every 30s
   useEffect(() => {
-    fetchState();
-  }, []);
+    let timeoutId: NodeJS.Timeout;
+    let isMounted = true;
 
-  const fetchState = async () => {
-    try {
-      const res = await fetch('/api/env/state');
-      const data = await res.json();
-      if (data.ok) {
-        setConnected(true);
-        setState(data);
-        if (startTimeRef.current === null) {
-          startTimeRef.current = Date.now();
+    const checkHealth = async () => {
+      let isConnected = false;
+      try {
+        const res = await fetch('/api/env/state');
+        if (res.ok) {
+          isConnected = true;
+          const data = await res.json();
+          if (data.ok) {
+            setState((prev) => prev ?? data);
+            if (startTimeRef.current === null) {
+              startTimeRef.current = Date.now();
+            }
+          } else {
+            // Bridge is running but env needs initial reset
+            const resetRes = await fetch('/api/env/reset', { method: 'POST', body: JSON.stringify({}) });
+            if (resetRes.ok) {
+              const resetData = await resetRes.json();
+              if (resetData.ok) {
+                setState((prev) => prev ?? resetData);
+              }
+            }
+          }
         }
-      } else {
-        setConnected(false);
+      } catch {
+        isConnected = false;
       }
-    } catch {
-      setConnected(false);
-    }
-  };
+
+      if (isMounted) {
+        setConnected(isConnected);
+        const delay = isConnected ? 30000 : 5000;
+        timeoutId = setTimeout(checkHealth, delay);
+      }
+    };
+
+    checkHealth();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   const handleReset = async () => {
     try {
       const res = await fetch('/api/env/reset', { method: 'POST', body: JSON.stringify({}) });
+      if (res.ok) {
+        setConnected(true);
+      }
       const data = await res.json();
       if (data.ok) {
         setState(data);
@@ -68,6 +95,9 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ policy }) 
       });
+      if (res.ok) {
+        setConnected(true);
+      }
       const data = await res.json();
       if (data.ok) {
         setState(data);

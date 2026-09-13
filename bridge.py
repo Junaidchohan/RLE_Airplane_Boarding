@@ -100,12 +100,18 @@ def main():
     message = None
     
     # Preload model if available
-    model_path = os.path.join("models", "smoke_test_model", "model.zip")
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(project_root, "models", "frontend_10x5", "model.zip")
     has_model = os.path.exists(model_path)
     if has_model:
-        # Dummy env for loading (must match trained model's shape)
-        dummy_env = gym.make("airplane-boarding-v0", num_of_rows=5, seats_per_row=5)
-        model = MaskablePPO.load(model_path, env=dummy_env)
+        import contextlib
+        with contextlib.redirect_stdout(sys.stderr):
+            # Dummy env for loading (must match trained model's shape)
+            dummy_env = gym.make("airplane-boarding-v0", num_of_rows=10, seats_per_row=5)
+            model = MaskablePPO.load(model_path, env=dummy_env)
+        sys.stderr.write(f"[bridge] Successfully loaded trained model from {model_path}\n")
+    else:
+        sys.stderr.write(f"[bridge] Trained model not found at {model_path}\n")
         
     sys.stderr.write("BRIDGE READY\n")
     sys.stderr.flush()
@@ -123,9 +129,12 @@ def main():
                 env = gym.make("airplane-boarding-v0", num_of_rows=num_rows, seats_per_row=seats_per_row)
                 if has_model and model is not None:
                     try:
-                        model.set_env(env)
+                        import contextlib
+                        with contextlib.redirect_stdout(sys.stderr):
+                            model.set_env(env)
                     except ValueError as e:
                         # Observation space mismatch
+                        sys.stderr.write(f"[bridge] model.set_env failed: {e}\n")
                         model = None
                     
                 obs, _ = env.reset(seed=seed)
