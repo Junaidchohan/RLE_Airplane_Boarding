@@ -86,7 +86,7 @@ function HeroStrip({
 }) {
   const delta = reward - prevReward;
   return (
-    <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-4">
+    <div className="w-full max-w-[1400px] mx-auto flex items-center justify-between px-6 py-4">
       <div className="flex items-center gap-4">
         <span className="text-sm font-mono text-slate-500 tabular-nums">
           Step&nbsp;
@@ -110,9 +110,12 @@ function HeroStrip({
             {delta >= 0 ? '+' : ''}{delta.toFixed(0)}
           </span>
         )}
-        <span className="text-3xl font-semibold tabular-nums tracking-tight gradient-text">
-          {reward.toFixed(0)}
-        </span>
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs font-mono uppercase tracking-wider text-slate-500">Reward</span>
+          <span className="text-3xl font-semibold tabular-nums tracking-tight gradient-text">
+            {reward.toFixed(0)}
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -6,9 +6,17 @@ import { cn } from '@/lib/cn';
 const SEAT_LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 export default function Cabin({ cabin }: { cabin: SeatData[][] }) {
-  if (!cabin || cabin.length === 0) return null;
+  const displayCabin = (!cabin || cabin.length === 0)
+    ? Array.from({ length: 10 }, (_, r) =>
+        Array.from({ length: 5 }, (_, s) => ({
+          seat_num: r * 5 + s,
+          state: 'empty' as const,
+          passenger: null,
+        }))
+      )
+    : cabin;
 
-  const seatsPerRow = cabin[0]?.length ?? 5;
+  const seatsPerRow = displayCabin[0]?.length ?? 5;
 
   return (
     <div className="flex flex-col gap-1.5 flex-1">
@@ -24,7 +32,7 @@ export default function Cabin({ cabin }: { cabin: SeatData[][] }) {
         ))}
       </div>
 
-      {cabin.map((row, rIdx) => (
+      {displayCabin.map((row, rIdx) => (
         <div key={rIdx} className="flex items-center gap-1.5">
           {/* Row label */}
           <div className="w-6 shrink-0 text-right text-[10px] font-mono text-slate-600 pr-0.5">

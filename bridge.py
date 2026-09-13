@@ -185,8 +185,22 @@ def main():
                 
             elif cmd == "state":
                 if env is None:
-                    print(json.dumps({"ok": False, "error": "Must call reset first"}), flush=True)
-                    continue
+                    env = gym.make("airplane-boarding-v0", num_of_rows=10, seats_per_row=5)
+                    if has_model and model is not None:
+                        try:
+                            import contextlib
+                            with contextlib.redirect_stdout(sys.stderr):
+                                model.set_env(env)
+                        except ValueError as e:
+                            sys.stderr.write(f"[bridge] model.set_env failed: {e}\n")
+                            model = None
+                    obs, _ = env.reset(seed=42)
+                    step_count = 0
+                    reward_total = 0.0
+                    reward_step = 0.0
+                    terminated = False
+                    last_action = None
+                    message = None
                 print(json.dumps(get_state(env, step_count, reward_step, reward_total, terminated, last_action, message)), flush=True)
                 
             elif cmd == "train":
