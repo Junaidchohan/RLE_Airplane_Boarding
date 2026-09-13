@@ -1,0 +1,42 @@
+# Python
+.venv/
+venv/
+env/
+airplane_env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+*.log
+
+# Models & logs (too large for git)
+models/
+logs/
+*.zip
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+frontend/build/
+npm-debug.log*
+yarn-error.log*
+
+# Next.js env
+frontend/.env*.local
+
+# Tensorboard
+events.out.tfevents.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Junk from QA runs
+qa_*.json
+qa_*.log
