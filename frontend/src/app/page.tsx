@@ -298,7 +298,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-4 justify-center items-start overflow-x-auto pb-2">
                 <Aisle aisle={state?.aisle || []} totalRows={10} />
                 <Cabin cabin={state?.cabin || []} />
               </div>
@@ -333,7 +333,10 @@ export default function Dashboard() {
 
             <RewardChart data={chartData} />
 
-            <Lobby lobby={state?.lobby || []} activeRow={state?.action ?? null} />
+            <Lobby
+              lobby={state?.lobby || []}
+              activeRow={state?.action ?? null}
+            />
           </div>
         </div>
       </main>

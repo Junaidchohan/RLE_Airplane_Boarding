@@ -3,14 +3,17 @@ import { useState } from 'react';
 import { LobbyData } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
-import { ChevronDown } from 'lucide-react';
+import PassengerSprite from './PassengerSprite';
+import { ChevronDown, Users } from 'lucide-react';
 
 export default function Lobby({
   lobby,
   activeRow,
+  onSelectRow,
 }: {
   lobby: LobbyData[];
   activeRow: number | null;
+  onSelectRow?: (row: number) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -20,23 +23,27 @@ export default function Lobby({
 
   return (
     <div className="glass rounded-2xl shadow-xl hover:border-white/10 transition-colors duration-300 overflow-hidden">
+      {/* Header with collapse toggle */}
       <button
+        type="button"
         onClick={() => setCollapsed((c) => !c)}
         className="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.02] transition-colors duration-200"
       >
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">
-            Lobby
+        <div className="flex items-center gap-2.5">
+          <Users size={14} className="text-cyan-400" />
+          <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase font-semibold">
+            Lobby Queues
           </span>
-          <span className="text-[10px] font-mono text-slate-600 tabular-nums">
-            {totalPassengers} remaining
+          <span className="text-[10px] font-mono text-slate-500 tabular-nums">
+            ({totalPassengers} waiting)
           </span>
         </div>
+
         <motion.div
           animate={{ rotate: collapsed ? -90 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronDown size={14} className="text-slate-600" />
+          <ChevronDown size={14} className="text-slate-500" />
         </motion.div>
       </button>
 
@@ -49,47 +56,66 @@ export default function Lobby({
             transition={{ duration: 0.25, ease: 'easeOut' }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 flex flex-col gap-2">
+            <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
               {lobby.map((lRow) => {
                 const isActive = activeRow === lRow.row;
+                const count = lRow.passengers.length;
+
                 return (
                   <div
-                    key={lRow.row}
+                    key={`lobby-row-${lRow.row}`}
+                    onClick={() => onSelectRow?.(lRow.row)}
                     className={cn(
-                      'flex items-start gap-2 p-2 rounded-xl transition-all duration-300',
+                      'flex flex-col gap-1.5 p-2.5 rounded-xl border transition-all duration-300 cursor-pointer select-none',
                       isActive
-                        ? 'bg-cyan-400/[0.06] ring-1 ring-cyan-400/30 shadow-[0_0_12px_rgba(34,211,238,0.08)]'
-                        : 'bg-white/[0.02]'
+                        ? 'bg-cyan-500/[0.1] border-cyan-400/40 ring-2 ring-cyan-400/30 shadow-[0_0_12px_rgba(34,211,238,0.15)] animate-pulse'
+                        : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]'
                     )}
                   >
-                    <div className="w-5 shrink-0 text-[10px] font-mono text-slate-600 pt-1 text-center">
-                      {lRow.row}
+                    {/* Header Label: Row # · # waiting */}
+                    <div className="flex items-center justify-between text-[10px] font-mono">
+                      <span
+                        className={cn(
+                          'font-bold',
+                          isActive ? 'text-cyan-300' : 'text-slate-400'
+                        )}
+                      >
+                        Row {lRow.row}
+                      </span>
+                      <span className="text-slate-500 font-medium">
+                        {count > 0 ? `${count} waiting` : 'Cleared'}
+                      </span>
                     </div>
-                    <div className="flex flex-wrap gap-1">
+
+                    {/* Character Lineup */}
+                    <div className="flex flex-wrap items-center gap-1 min-h-[26px]">
                       <AnimatePresence>
                         {lRow.passengers.map((p) => (
                           <motion.div
-                            key={`lobby-${p}`}
+                            key={`lobby-p-${p}`}
                             layout
-                            layoutId={`passenger-${p}`}
-                            initial={{ opacity: 0, scale: 0.7 }}
+                            initial={{ opacity: 0, scale: 0.6 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.3 }}
-                            transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-                            className={cn(
-                              'h-6 px-2 flex items-center justify-center rounded-md text-[10px] font-mono font-semibold border',
-                              isActive
-                                ? 'bg-cyan-400/10 border-cyan-400/30 text-cyan-300 animate-pulse'
-                                : 'bg-white/[0.04] border-white/[0.08] text-slate-400'
-                            )}
+                            exit={{ opacity: 0, x: -10, scale: 0.3 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="flex flex-col items-center bg-white/[0.03] border border-white/[0.06] rounded-md px-1 py-0.5"
+                            title={`Passenger ${p}`}
                           >
-                            {p.replace('P', '')}
+                            <PassengerSprite
+                              state="IDLE"
+                              size="sm"
+                              tint={isActive ? 'cyan' : 'slate'}
+                            />
+                            <span className="text-[7px] font-mono text-slate-500">
+                              {p}
+                            </span>
                           </motion.div>
                         ))}
                       </AnimatePresence>
-                      {lRow.passengers.length === 0 && (
-                        <span className="text-[10px] text-slate-700 font-mono italic">
-                          cleared
+
+                      {count === 0 && (
+                        <span className="text-[9px] font-mono text-slate-700 italic">
+                          All boarded ✓
                         </span>
                       )}
                     </div>
