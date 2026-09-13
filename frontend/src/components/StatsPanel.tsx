@@ -1,56 +1,79 @@
 'use client';
 import { StatsData } from '@/types';
-import { Activity, Users, Clock, ArrowUpCircle } from 'lucide-react';
 
-export default function StatsPanel({ 
-  stats, 
-  step, 
-  reward, 
-  elapsed 
-}: { 
-  stats: StatsData; 
-  step: number; 
-  reward: number; 
+interface StatTileProps {
+  label: string;
+  value: string;
+  valueClass?: string;
+  sub?: string;
+}
+
+function StatTile({ label, value, valueClass = 'text-slate-100', sub }: StatTileProps) {
+  return (
+    <div className="flex flex-col p-3 bg-white/[0.03] rounded-xl border border-white/[0.06] hover:bg-white/[0.04] transition-colors duration-200">
+      <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase mb-2">
+        {label}
+      </span>
+      <span className={`text-2xl font-semibold tabular-nums tracking-tight ${valueClass}`}>
+        {value}
+        {sub && (
+          <span className="text-sm font-normal text-slate-600 ml-1">{sub}</span>
+        )}
+      </span>
+    </div>
+  );
+}
+
+export default function StatsPanel({
+  stats,
+  step,
+  reward,
+  elapsed,
+}: {
+  stats: StatsData;
+  step: number;
+  reward: number;
   elapsed: number;
 }) {
+  const rewardStr = reward.toFixed(0);
+
   return (
-    <div className="grid grid-cols-2 gap-3 p-4 bg-slate-900/50 rounded-2xl shadow-xl border border-white/5 backdrop-blur-sm">
-      <div className="col-span-2">
-        <h2 className="text-sm font-semibold text-slate-400 mb-2 tracking-widest uppercase">Metrics</h2>
-      </div>
-
-      <div className="flex flex-col p-3 bg-slate-800/40 rounded-xl border border-slate-700/50">
-        <div className="flex items-center gap-2 text-slate-400 mb-1">
-          <Activity size={14} />
-          <span className="text-xs uppercase font-semibold">Step</span>
-        </div>
-        <span className="text-xl font-mono font-bold text-slate-200">{step}</span>
-      </div>
-
-      <div className="flex flex-col p-3 bg-slate-800/40 rounded-xl border border-slate-700/50">
-        <div className="flex items-center gap-2 text-slate-400 mb-1">
-          <ArrowUpCircle size={14} />
-          <span className="text-xs uppercase font-semibold">Reward</span>
-        </div>
-        <span className="text-xl font-mono font-bold text-blue-400">{reward.toFixed(1)}</span>
-      </div>
-
-      <div className="flex flex-col p-3 bg-slate-800/40 rounded-xl border border-slate-700/50">
-        <div className="flex items-center gap-2 text-slate-400 mb-1">
-          <Users size={14} />
-          <span className="text-xs uppercase font-semibold">Seated</span>
-        </div>
-        <span className="text-xl font-mono font-bold text-emerald-400">
-          {stats?.seated ?? 0} <span className="text-sm text-slate-500">/ {stats?.total ?? 0}</span>
+    <div className="glass rounded-2xl p-4 shadow-xl hover:border-white/10 transition-colors duration-300">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">
+          Metrics
         </span>
+        {stats.stalled > 0 && (
+          <span className="flex items-center gap-1 text-[10px] font-mono text-rose-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            {stats.stalled} stalled
+          </span>
+        )}
       </div>
 
-      <div className="flex flex-col p-3 bg-slate-800/40 rounded-xl border border-slate-700/50">
-        <div className="flex items-center gap-2 text-slate-400 mb-1">
-          <Clock size={14} />
-          <span className="text-xs uppercase font-semibold">Elapsed</span>
-        </div>
-        <span className="text-xl font-mono font-bold text-slate-200">{elapsed.toFixed(1)}s</span>
+      <div className="grid grid-cols-2 gap-2">
+        <StatTile
+          label="Step"
+          value={String(step)}
+          sub="/ 50"
+        />
+        <StatTile
+          label="Reward"
+          value={rewardStr}
+          valueClass="gradient-text"
+        />
+        <StatTile
+          label="Seated"
+          value={String(stats?.seated ?? 0)}
+          sub={`/ ${stats?.total ?? 50}`}
+          valueClass="text-emerald-400"
+        />
+        <StatTile
+          label="Elapsed"
+          value={elapsed.toFixed(1)}
+          sub="s"
+          valueClass="text-slate-300"
+        />
       </div>
     </div>
   );

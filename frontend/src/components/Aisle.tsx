@@ -1,49 +1,89 @@
 'use client';
 import { AisleData } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUp, X, Briefcase } from 'lucide-react';
-import clsx from 'clsx';
+import { cn } from '@/lib/cn';
 
-export default function Aisle({ aisle, totalRows }: { aisle: AisleData[], totalRows: number }) {
-  // Aisle is a vertical column next to the cabin. We'll map rows 0..totalRows-1.
-  
-  // Create an array of length totalRows
-  const slots = Array.from({ length: totalRows }, (_, i) => {
-    return aisle.find(a => a.row === i) || null;
-  });
+function ArrowUpIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+      <path d="M5 1L9 6H6v3H4V6H1L5 1z" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" strokeWidth="2">
+      <path d="M2 2l6 6M8 2l-6 6" />
+    </svg>
+  );
+}
+
+function LuggageIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <rect x="2" y="3" width="6" height="6" rx="1" />
+      <path d="M3.5 3V2a1.5 1.5 0 013 0v1" />
+      <line x1="5" y1="5" x2="5" y2="7" />
+    </svg>
+  );
+}
+
+export default function Aisle({
+  aisle,
+  totalRows,
+}: {
+  aisle: AisleData[];
+  totalRows: number;
+}) {
+  const slots = Array.from({ length: totalRows }, (_, i) =>
+    aisle.find((a) => a.row === i) || null
+  );
 
   return (
-    <div className="flex flex-col gap-2 p-4 bg-slate-900/50 rounded-2xl shadow-xl border border-white/5 backdrop-blur-sm w-20 items-center">
-      <h2 className="text-sm font-semibold text-slate-400 mb-2 tracking-widest uppercase">Aisle</h2>
-      {slots.map((slot, idx) => (
-        <div key={`slot-${idx}`} className="w-12 h-10 flex items-center justify-center relative bg-slate-800/40 rounded-xl border border-slate-800 border-dashed">
-          <AnimatePresence>
-            {slot && slot.passenger && (
-              <motion.div
-                layout
-                layoutId={`passenger-${slot.passenger}`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.5 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className={clsx(
-                  "absolute inset-0 flex items-center justify-between px-1 rounded-xl shadow-lg border text-xs font-mono font-bold",
-                  {
-                    "bg-blue-500/80 border-blue-400 text-blue-50": slot.status === "MOVING",
-                    "bg-red-500/80 border-red-400 text-red-50": slot.status === "STALLED",
-                    "bg-amber-500/80 border-amber-400 text-amber-50": slot.status === "STOWING",
-                  }
-                )}
-              >
-                <span className="scale-75">{slot.passenger}</span>
-                {slot.status === "MOVING" && <ArrowUp size={12} />}
-                {slot.status === "STALLED" && <X size={12} />}
-                {slot.status === "STOWING" && <Briefcase size={12} />}
-              </motion.div>
+    <div className="flex flex-col gap-1.5 items-center w-12 shrink-0">
+      {/* Header spacer to align with cabin's letter row */}
+      <div className="h-[22px]" />
+
+      {/* Thin vertical aisle line */}
+      <div className="relative flex flex-col gap-1.5 items-center">
+        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-slate-700/0 via-slate-600/40 to-slate-700/0 pointer-events-none" />
+
+        {slots.map((slot, idx) => (
+          <div
+            key={`slot-${idx}`}
+            className="relative w-9 h-9 flex items-center justify-center"
+          >
+            <AnimatePresence>
+              {slot && slot.passenger && (
+                <motion.div
+                  layout
+                  layoutId={`aisle-${slot.passenger}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.6 }}
+                  transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                  className={cn(
+                    'absolute inset-0 flex items-center justify-center gap-0.5 rounded-lg border text-[10px] font-mono font-semibold z-10',
+                    slot.status === 'MOVING' && 'bg-slate-500/20 border-slate-400/30 text-slate-300',
+                    slot.status === 'STALLED' && 'bg-rose-500/20 border-rose-400/40 text-rose-300',
+                    slot.status === 'STOWING' && 'bg-amber-500/20 border-amber-400/40 text-amber-300',
+                  )}
+                >
+                  {slot.status === 'MOVING' && <ArrowUpIcon />}
+                  {slot.status === 'STALLED' && <XIcon />}
+                  {slot.status === 'STOWING' && <LuggageIcon />}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Empty slot indicator */}
+            {!slot?.passenger && (
+              <div className="w-1 h-1 rounded-full bg-slate-800" />
             )}
-          </AnimatePresence>
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

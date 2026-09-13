@@ -8,9 +8,117 @@ import RewardChart from '@/components/RewardChart';
 import StatsPanel from '@/components/StatsPanel';
 import Controls from '@/components/Controls';
 import ActionMask from '@/components/ActionMask';
-import { Activity } from 'lucide-react';
-import clsx from 'clsx';
+import { cn } from '@/lib/cn';
+import { ExternalLink } from 'lucide-react';
 
+// ── Top bar ──────────────────────────────────────────────────────────────────
+function TopBar({ connected, step, episodeCount }: { connected: boolean; step: number; episodeCount: number }) {
+  return (
+    <header className="sticky top-0 z-50 border-b border-white/[0.05] bg-[#080810]/80 backdrop-blur-xl">
+      <div className="max-w-[1400px] mx-auto h-12 flex items-center justify-between px-6">
+        {/* Brand */}
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-900/40">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="white">
+              <path d="M10 5C10 8 6 11 6 11S2 8 2 5a4 4 0 018 0z" />
+              <circle cx="6" cy="5" r="1.5" fill="#080810" />
+            </svg>
+          </div>
+          <span className="text-sm font-semibold text-slate-200 tracking-tight">
+            Airplane Boarding
+          </span>
+          <span className="text-slate-700">·</span>
+          <span className="text-xs text-slate-500 font-mono">RLE</span>
+        </div>
+
+        {/* Right cluster */}
+        <div className="flex items-center gap-3">
+          {/* Episode counter */}
+          <span className="text-[11px] font-mono text-slate-500 tabular-nums hidden sm:block">
+            Ep&nbsp;{episodeCount}&nbsp;·&nbsp;Step&nbsp;
+            <span className="text-slate-300">{step}</span>&nbsp;/&nbsp;50
+          </span>
+
+          {/* Bridge status */}
+          <div
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono border transition-all duration-500',
+              connected
+                ? 'bg-emerald-500/[0.08] border-emerald-400/20 text-emerald-400'
+                : 'bg-rose-500/[0.08] border-rose-400/20 text-rose-400'
+            )}
+          >
+            <span
+              className={cn(
+                'w-1.5 h-1.5 rounded-full',
+                connected ? 'bg-emerald-400 animate-pulse' : 'bg-rose-500'
+              )}
+            />
+            {connected ? 'Connected' : 'Disconnected'}
+          </div>
+
+          {/* GitHub link */}
+          <a
+            href="https://github.com/Junaidchohan/RLE_Airplane_Boarding"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-white/[0.05] transition-all duration-200"
+          >
+            <ExternalLink size={14} />
+          </a>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+// ── Hero strip ────────────────────────────────────────────────────────────────
+function HeroStrip({
+  step,
+  reward,
+  prevReward,
+  terminated,
+}: {
+  step: number;
+  reward: number;
+  prevReward: number;
+  terminated: boolean;
+}) {
+  const delta = reward - prevReward;
+  return (
+    <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-4">
+      <div className="flex items-center gap-4">
+        <span className="text-sm font-mono text-slate-500 tabular-nums">
+          Step&nbsp;
+          <span className="text-slate-200 font-semibold">{step}</span>
+          &nbsp;/&nbsp;50
+        </span>
+        {terminated && (
+          <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-400/20 text-emerald-400 text-[10px] font-mono rounded-full">
+            COMPLETE
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        {step > 0 && delta !== 0 && (
+          <span
+            className={cn(
+              'text-xs font-mono',
+              delta >= 0 ? 'text-emerald-400' : 'text-rose-400'
+            )}
+          >
+            {delta >= 0 ? '+' : ''}{delta.toFixed(0)}
+          </span>
+        )}
+        <span className="text-3xl font-semibold tabular-nums tracking-tight gradient-text">
+          {reward.toFixed(0)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [connected, setConnected] = useState<boolean>(false);
   const [state, setState] = useState<StateResponse | null>(null);
@@ -18,7 +126,9 @@ export default function Dashboard() {
   const [policy, setPolicy] = useState<'random' | 'trained'>('trained');
   const [isAutoplay, setIsAutoplay] = useState(false);
   const [isTraining, setIsTraining] = useState(false);
-  
+  const [episodeCount, setEpisodeCount] = useState(1);
+  const [prevReward, setPrevReward] = useState(0);
+
   const startTimeRef = useRef<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
 
@@ -40,7 +150,6 @@ export default function Dashboard() {
               startTimeRef.current = Date.now();
             }
           } else {
-            // Bridge is running but env needs initial reset
             const resetRes = await fetch('/api/env/reset', { method: 'POST', body: JSON.stringify({}) });
             if (resetRes.ok) {
               const resetData = await resetRes.json();
@@ -62,57 +171,44 @@ export default function Dashboard() {
     };
 
     checkHealth();
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
-    };
+    return () => { isMounted = false; clearTimeout(timeoutId); };
   }, []);
 
   const handleReset = async () => {
     try {
       const res = await fetch('/api/env/reset', { method: 'POST', body: JSON.stringify({}) });
-      if (res.ok) {
-        setConnected(true);
-      }
+      if (res.ok) setConnected(true);
       const data = await res.json();
       if (data.ok) {
+        setPrevReward(state?.reward_total ?? 0);
         setState(data);
         setChartData([{ step: data.step, reward: data.reward_total, stalled: data.stats?.stalled ?? 0 }]);
         startTimeRef.current = Date.now();
         setElapsed(0);
         setIsAutoplay(false);
+        setEpisodeCount((c) => c + 1);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const handleStep = useCallback(async () => {
     try {
-      const res = await fetch('/api/env/step', { 
-        method: 'POST', 
+      const res = await fetch('/api/env/step', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ policy }) 
+        body: JSON.stringify({ policy }),
       });
-      if (res.ok) {
-        setConnected(true);
-      }
+      if (res.ok) setConnected(true);
       const data = await res.json();
       if (data.ok) {
         setState(data);
-        setChartData(prev => [...prev, { 
-          step: data.step, 
-          reward: data.reward_total,
-          stalled: data.stats?.stalled ?? 0
-        }]);
-        if (data.terminated) {
-          setIsAutoplay(false);
-        }
+        setChartData((prev) => [
+          ...prev,
+          { step: data.step, reward: data.reward_total, stalled: data.stats?.stalled ?? 0 },
+        ]);
+        if (data.terminated) setIsAutoplay(false);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   }, [policy]);
 
   const handleTrain = async () => {
@@ -122,51 +218,33 @@ export default function Dashboard() {
       const response = await fetch('/api/env/train', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timesteps: 20000 })
+        body: JSON.stringify({ timesteps: 20000 }),
       });
-      
       const reader = response.body?.getReader();
       const decoder = new TextDecoder('utf-8');
-      
       if (!reader) throw new Error('No reader available');
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n\n');
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
-              if (data.done) {
-                setIsTraining(false);
-                handleReset();
-              } else if (data.ok === false) {
-                console.error("Training error", data);
-                setIsTraining(false);
-              } else {
-                console.log("Training progress:", data);
-              }
-            } catch (err) {
-              console.error("Parse error", err);
-            }
+              if (data.done) { setIsTraining(false); handleReset(); }
+              else if (data.ok === false) { console.error('Training error', data); setIsTraining(false); }
+            } catch (err) { console.error('Parse error', err); }
           }
         }
       }
-    } catch (e) {
-      console.error("SSE Error", e);
-      setIsTraining(false);
-    }
+    } catch (e) { console.error('SSE Error', e); setIsTraining(false); }
   };
 
   // Autoplay loop
   useEffect(() => {
     if (!isAutoplay) return;
-    const interval = setInterval(() => {
-      handleStep();
-    }, 350);
+    const interval = setInterval(handleStep, 350);
     return () => clearInterval(interval);
   }, [isAutoplay, handleStep]);
 
@@ -174,75 +252,105 @@ export default function Dashboard() {
   useEffect(() => {
     if (state?.terminated) return;
     const interval = setInterval(() => {
-      if (startTimeRef.current) {
-        setElapsed((Date.now() - startTimeRef.current) / 1000);
-      }
+      if (startTimeRef.current) setElapsed((Date.now() - startTimeRef.current) / 1000);
     }, 100);
     return () => clearInterval(interval);
   }, [state?.terminated]);
 
-  if (!state && connected) {
-    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading...</div>;
-  }
-
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-indigo-950 text-slate-200 p-8">
-      
-      {/* Header */}
-      <div className="max-w-7xl mx-auto flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Airplane Boarding</h1>
-          <p className="text-sm text-slate-400">RLE Dashboard • Maskable PPO</p>
-        </div>
-        <div className="flex items-center gap-4">
-          {!connected && (
-             <button onClick={handleReset} className="px-3 py-1 bg-blue-600 rounded text-sm hover:bg-blue-500 text-white">Initialize</button>
-          )}
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/50 rounded-full border border-white/5 shadow-inner">
-            <Activity size={14} className={connected ? "text-emerald-500" : "text-red-500"} />
-            <span className="text-xs font-medium">{connected ? "Bridge Connected" : "Disconnected"}</span>
+    <div className="min-h-screen flex flex-col" style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(34,211,238,0.04) 0%, transparent 50%), #080810' }}>
+      <TopBar connected={connected} step={state?.step ?? 0} episodeCount={episodeCount} />
+
+      <HeroStrip
+        step={state?.step ?? 0}
+        reward={state?.reward_total ?? 0}
+        prevReward={prevReward}
+        terminated={state?.terminated ?? false}
+      />
+
+      {/* Main grid */}
+      <main className="flex-1 max-w-[1400px] mx-auto w-full px-6 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+          {/* Left: Cabin + Aisle panel (7 cols) */}
+          <div className="lg:col-span-7">
+            <div className="glass rounded-2xl p-5 shadow-2xl h-full hover:border-white/10 transition-colors duration-300">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">
+                    Cabin
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-700">10 × 5</span>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] font-mono">
+                  <span className="flex items-center gap-1 text-emerald-500">
+                    <span className="w-2 h-2 rounded-sm bg-emerald-500/30 border border-emerald-400/40 inline-block" /> Seated
+                  </span>
+                  <span className="flex items-center gap-1 text-amber-400">
+                    <span className="w-2 h-2 rounded-sm bg-amber-500/20 border border-amber-400/30 inline-block" /> Stowing
+                  </span>
+                  <span className="flex items-center gap-1 text-slate-600">
+                    <span className="w-2 h-2 rounded-sm bg-white/[0.02] border border-white/[0.06] inline-block" /> Empty
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <Aisle aisle={state?.aisle || []} totalRows={10} />
+                <Cabin cabin={state?.cabin || []} />
+              </div>
+            </div>
+          </div>
+
+          {/* Right: stacked controls (5 cols) */}
+          <div className="lg:col-span-5 flex flex-col gap-4">
+            <StatsPanel
+              stats={state?.stats || { seated: 0, total: 50, stalled: 0, moving: 0, stowing: 0, mask: [] }}
+              step={state?.step || 0}
+              reward={state?.reward_total || 0}
+              elapsed={elapsed}
+            />
+
+            <Controls
+              onReset={handleReset}
+              onStep={handleStep}
+              onToggleAutoplay={() => setIsAutoplay(!isAutoplay)}
+              isAutoplay={isAutoplay}
+              policy={policy}
+              setPolicy={setPolicy}
+              onTrain={handleTrain}
+              isTraining={isTraining}
+              terminated={state?.terminated || false}
+            />
+
+            <ActionMask
+              mask={state?.stats?.mask || []}
+              lastAction={state?.action ?? null}
+            />
+
+            <RewardChart data={chartData} />
+
+            <Lobby lobby={state?.lobby || []} activeRow={state?.action ?? null} />
           </div>
         </div>
-      </div>
+      </main>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Column (spans 2) - Visualizations */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="flex gap-6">
-            <Aisle aisle={state?.aisle || []} totalRows={10} />
-            <Cabin cabin={state?.cabin || []} />
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-white/[0.04] py-4 px-6">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+          <span className="text-[11px] font-mono text-slate-700">
+            Gymnasium · MaskablePPO · sb3-contrib
+          </span>
+          <a
+            href="https://github.com/Junaidchohan/RLE_Airplane_Boarding"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-mono text-slate-700 hover:text-slate-400 transition-colors duration-200 flex items-center gap-1"
+          >
+            Junaidchohan/RLE_Airplane_Boarding <ExternalLink size={10} />
+          </a>
         </div>
-
-        {/* Right Column - Stats, Controls, Logs */}
-        <div className="flex flex-col gap-4">
-          <StatsPanel 
-            stats={state?.stats || { seated: 0, total: 50, stalled: 0, moving: 0, stowing: 0, mask: [] }} 
-            step={state?.step || 0}
-            reward={state?.reward_total || 0}
-            elapsed={elapsed}
-          />
-          <Controls 
-            onReset={handleReset}
-            onStep={handleStep}
-            onToggleAutoplay={() => setIsAutoplay(!isAutoplay)}
-            isAutoplay={isAutoplay}
-            policy={policy}
-            setPolicy={setPolicy}
-            onTrain={handleTrain}
-            isTraining={isTraining}
-            terminated={state?.terminated || false}
-          />
-          <ActionMask 
-            mask={state?.stats?.mask || []}
-            lastAction={state?.action ?? null}
-          />
-          <RewardChart data={chartData} />
-          <Lobby lobby={state?.lobby || []} activeRow={state?.action ?? null} />
-        </div>
-      </div>
-      
+      </footer>
     </div>
   );
 }

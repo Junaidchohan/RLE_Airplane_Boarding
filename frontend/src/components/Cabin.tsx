@@ -1,41 +1,59 @@
 'use client';
 import { SeatData } from '@/types';
 import { motion } from 'framer-motion';
-import clsx from 'clsx';
+import { cn } from '@/lib/cn';
+
+const SEAT_LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 export default function Cabin({ cabin }: { cabin: SeatData[][] }) {
   if (!cabin || cabin.length === 0) return null;
 
+  const seatsPerRow = cabin[0]?.length ?? 5;
+
   return (
-    <div className="flex flex-col gap-2 p-4 bg-slate-900/50 rounded-2xl shadow-xl border border-white/5 backdrop-blur-sm">
-      <h2 className="text-sm font-semibold text-slate-400 mb-2 tracking-widest uppercase">Cabin</h2>
+    <div className="flex flex-col gap-1.5 flex-1">
+      {/* Seat letter headers */}
+      <div className="flex gap-1.5 mb-0.5 ml-8">
+        {Array.from({ length: seatsPerRow }).map((_, i) => (
+          <div
+            key={i}
+            className="w-9 text-center text-[10px] font-mono tracking-widest text-slate-600 uppercase"
+          >
+            {SEAT_LETTERS[i] ?? i}
+          </div>
+        ))}
+      </div>
+
       {cabin.map((row, rIdx) => (
-        <div key={rIdx} className="flex gap-2">
-          {row.map((seat, sIdx) => {
+        <div key={rIdx} className="flex items-center gap-1.5">
+          {/* Row label */}
+          <div className="w-6 shrink-0 text-right text-[10px] font-mono text-slate-600 pr-0.5">
+            R{rIdx}
+          </div>
+
+          {row.map((seat) => {
             const isEmpty = seat.state === 'empty';
             const isStowing = seat.state === 'stowing';
             const isSeated = seat.state === 'seated';
 
             return (
               <motion.div
-                layout
                 key={seat.seat_num}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className={clsx(
-                  "w-10 h-10 flex items-center justify-center rounded-xl text-xs font-mono font-bold border transition-colors shadow-sm",
-                  {
-                    "bg-slate-800 border-slate-700/50 text-slate-600": isEmpty,
-                    "bg-amber-500/80 border-amber-400/50 text-amber-100": isStowing,
-                    "bg-emerald-500/80 border-emerald-400/50 text-emerald-50": isSeated,
-                    // Give a small gap in the middle for the aisle visual effect (assuming 5 seats, gap after 2nd/3rd?) 
-                    // Wait, the prompt says "vertical column in front of the seats". 
-                    // Let's just render them in a row.
-                  }
+                layout
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  transition: { type: 'spring', stiffness: 400, damping: 30 },
+                }}
+                className={cn(
+                  'w-9 h-9 flex items-center justify-center rounded-lg border text-[10px] font-mono font-semibold transition-colors duration-200 select-none',
+                  isEmpty && 'bg-white/[0.02] border-white/[0.06] text-slate-700',
+                  isSeated && 'bg-emerald-500/15 border-emerald-400/30 text-emerald-300',
+                  isStowing && 'bg-amber-500/15 border-amber-400/40 text-amber-300 animate-pulse',
                 )}
               >
-                {seat.passenger ? seat.passenger : seat.seat_num}
+                {seat.passenger ? seat.passenger.replace('P', '') : ''}
               </motion.div>
             );
           })}

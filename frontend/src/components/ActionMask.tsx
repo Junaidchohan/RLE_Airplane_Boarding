@@ -1,35 +1,56 @@
 'use client';
-import clsx from 'clsx';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/cn';
 
-export default function ActionMask({ 
-  mask, 
-  lastAction 
-}: { 
-  mask: boolean[]; 
+export default function ActionMask({
+  mask,
+  lastAction,
+}: {
+  mask: boolean[];
   lastAction: number | null;
 }) {
   if (!mask || mask.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2 p-4 bg-slate-900/50 rounded-2xl shadow-xl border border-white/5 backdrop-blur-sm">
-      <h2 className="text-sm font-semibold text-slate-400 tracking-widest uppercase">Action Mask</h2>
-      <div className="flex gap-1 overflow-x-auto pb-1">
+    <div className="glass rounded-2xl p-4 shadow-xl hover:border-white/10 transition-colors duration-300">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">
+          Action Mask
+        </span>
+        <span className="text-[10px] font-mono text-slate-600">
+          {mask.filter(Boolean).length} / {mask.length} available
+        </span>
+      </div>
+
+      <div className="flex gap-1.5 items-center">
         {mask.map((isValid, idx) => {
           const isSelected = lastAction === idx;
+
           return (
-            <div 
-              key={idx}
-              className={clsx(
-                "flex flex-col items-center justify-center min-w-[28px] h-10 rounded-md border text-xs font-mono font-bold transition-all",
-                isValid ? "bg-slate-800 border-slate-700 text-slate-300" : "bg-slate-950/50 border-slate-900 text-slate-700 opacity-50",
-                isSelected && isValid ? "ring-2 ring-indigo-500 bg-indigo-900/50 text-indigo-200 border-indigo-500" : ""
-              )}
-            >
-              {idx}
-              <div className={clsx(
-                "w-1.5 h-1.5 rounded-full mt-1",
-                isValid ? "bg-emerald-500" : "bg-slate-800"
-              )} />
+            <div key={idx} className="flex flex-col items-center gap-1.5 flex-1">
+              <motion.div
+                layout
+                animate={{
+                  scale: isSelected ? 1.15 : 1,
+                }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                className={cn(
+                  'h-1.5 w-full rounded-full transition-colors duration-200',
+                  !isValid && 'bg-white/[0.06]',
+                  isValid && !isSelected && 'bg-emerald-400/50',
+                  isSelected && isValid && 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]',
+                )}
+              />
+              <span
+                className={cn(
+                  'text-[9px] font-mono tabular-nums transition-colors duration-200',
+                  !isValid && 'text-slate-700',
+                  isValid && !isSelected && 'text-slate-500',
+                  isSelected && 'text-cyan-400 font-bold',
+                )}
+              >
+                {idx}
+              </span>
             </div>
           );
         })}
