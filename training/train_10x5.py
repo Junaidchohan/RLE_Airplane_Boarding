@@ -1,9 +1,7 @@
 import os
-import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
 import gymnasium as gym
 from stable_baselines3.common.env_util import make_vec_env

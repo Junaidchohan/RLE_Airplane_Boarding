@@ -2,12 +2,9 @@
 QA Audit: Stress-tests AirplaneEnv over 100 episodes with a valid random policy.
 Checks observation bounds, mask length, terminal state consistency.
 """
-import sys
-import os
 import traceback
 from pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import numpy as np
 

@@ -1,8 +1,3 @@
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 import gymnasium as gym
 import src.env.airplane_boarding  # noqa: F401  (registers the env)
 from gymnasium.utils.env_checker import check_env

@@ -1,8 +1,6 @@
-import sys
 import os
 from pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import gymnasium as gym
 from src.env.airplane_boarding import AirplaneEnv

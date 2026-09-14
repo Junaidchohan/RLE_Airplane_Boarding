@@ -20,8 +20,6 @@ dependencies = [
     "pydantic",
 ]
 
-[tool.setuptools]
-packages = ["src", "src.env", "src.core", "src.server", "training", "tests"]
-
-[tool.setuptools.package-dir]
-"" = "."
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
