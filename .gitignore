@@ -40,3 +40,4 @@ Thumbs.db
 # Junk from QA runs
 qa_*.json
 qa_*.log
+bridge_stderr.txt
