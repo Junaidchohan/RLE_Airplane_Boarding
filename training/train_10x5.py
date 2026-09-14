@@ -1,12 +1,15 @@
 import os
 import sys
 import time
+from pathlib import Path
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
 import gymnasium as gym
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv
 from sb3_contrib import MaskablePPO
-from airplane_boarding import AirplaneEnv
+from src.env.airplane_boarding import AirplaneEnv
 
 
 def evaluate(model, num_episodes=10, is_random=False):
@@ -39,8 +42,8 @@ def evaluate(model, num_episodes=10, is_random=False):
 
 
 def main():
-    project_root = os.path.dirname(os.path.abspath(__file__))
-    model_dir = os.path.join(project_root, "models", "frontend_10x5")
+    repo_root = Path(__file__).resolve().parent.parent
+    model_dir = os.path.join(repo_root, "models", "frontend_10x5")
     os.makedirs(model_dir, exist_ok=True)
     save_path = os.path.join(model_dir, "model.zip")
     

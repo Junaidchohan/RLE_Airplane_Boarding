@@ -246,25 +246,25 @@ source .venv/bin/activate   # macOS/Linux
 pip install -r requirements.txt
 
 # Run Gymnasium environment checker & RLE acceptance
-python check_env.py
-python accept_rle.py
+python -m tests.check_env
+python -m tests.accept_rle
 ```
 
 ### 2. Train a Policy
 
 ```bash
 # Quick learning acceptance verification (20k steps)
-python accept_learn.py
+python -m tests.accept_learn
 
 # Full production training run
-python agent.py
+python -m training.agent
 ```
 
 ### 3. Run the Dashboard
 
 ```bash
 # Start backend API (Terminal 1)
-python server.py
+python -m src.server.server
 
 # Start Next.js frontend (Terminal 2)
 cd frontend
@@ -279,15 +279,35 @@ npm run dev
 
 ```text
 .
-├── airplane_boarding.py   # Core Gymnasium environment implementation
-├── agent.py               # MaskablePPO training and evaluation pipeline
-├── bridge.py              # Subprocess bridge and state serializer
-├── check_env.py           # Gymnasium API compliance checker
-├── accept_rle.py          # 5-stage formal RLE specification test suite
-├── accept_learn.py        # Policy convergence verification test
-├── requirements.txt       # Python dependency specifications
-├── frontend/              # Next.js real-time visual boarding dashboard
-└── render.yaml            # Cloud deployment configuration
+├── src/                          # Core Python package
+│   ├── env/
+│   │   └── airplane_boarding.py  # Pure Gymnasium environment implementation
+│   ├── core/
+│   │   └── rle_core.py           # Headless RLE session and evaluation logic
+│   └── server/
+│       ├── bridge.py             # Subprocess bridge and state serializer
+│       └── server.py             # FastAPI backend API server
+├── training/                     # RL training pipelines
+│   ├── agent.py                  # MaskablePPO training and evaluation
+│   ├── train_10x5.py             # 10x5 cabin policy trainer
+│   └── train_frontend_10x5.py    # Training pipeline with live metrics
+├── tests/                        # Automated verification test suites
+│   ├── check_env.py              # Gymnasium API compliance checker
+│   ├── smoke_test.py             # Training smoke test
+│   ├── eval_smoke.py             # Checkpoint evaluator
+│   ├── accept_rle.py             # 5-stage formal RLE specification suite
+│   ├── accept_learn.py           # Policy convergence verification test
+│   ├── qa_audit.py               # Stress test & observation bounds audit
+│   ├── qa_reward_audit.py        # Step-by-step reward trace audit
+│   └── test_bridge.py            # IPC bridge integration test
+├── docs/                         # System architecture & verification reports
+│   ├── architecture.md           # Architecture design & extension notes
+│   └── results.md                # Benchmark & test verification runs
+├── frontend/                     # Next.js real-time visual boarding dashboard
+├── pyproject.toml                # Project metadata and package configuration
+├── requirements.txt              # Python dependency specifications
+├── render.yaml                   # Cloud deployment configuration
+└── LICENSE                       # Apache 2.0 License
 ```
 
 ---

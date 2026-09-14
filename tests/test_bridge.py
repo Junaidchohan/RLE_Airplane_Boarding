@@ -1,13 +1,18 @@
+import sys
 import subprocess
 import json
+from pathlib import Path
+
+REPO_ROOT = str(Path(__file__).resolve().parent.parent)
 
 def run_episode(policy):
     p = subprocess.Popen(
-        ['python', 'bridge.py'],
+        [sys.executable, '-m', 'src.server.bridge'],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
+        cwd=REPO_ROOT
     )
     
     # reset

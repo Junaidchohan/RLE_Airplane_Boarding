@@ -1,12 +1,17 @@
 import sys
+import os
 import time
+from pathlib import Path
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import numpy as np
 import gymnasium as gym
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.utils import get_action_masks
-from airplane_boarding import AirplaneEnv
+from src.env.airplane_boarding import AirplaneEnv
 
 
 def evaluate_policy(model, num_episodes=10, is_random=False):

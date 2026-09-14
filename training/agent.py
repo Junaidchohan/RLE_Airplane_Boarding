@@ -1,17 +1,22 @@
+import sys
+import os
+from pathlib import Path
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import gymnasium as gym
-from airplane_boarding import AirplaneEnv
+from src.env.airplane_boarding import AirplaneEnv
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.utils import get_action_masks
 
 from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.env_util import make_vec_env
-from sb3_contrib.common.maskable.callbacks import  MaskableEvalCallback
+from sb3_contrib.common.maskable.callbacks import MaskableEvalCallback
 from stable_baselines3.common.callbacks import StopTrainingOnNoModelImprovement, StopTrainingOnRewardThreshold
 
-import os
-
-model_dir = "models"
-log_dir = "logs"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+model_dir = os.path.join(REPO_ROOT, "models")
+log_dir = os.path.join(REPO_ROOT, "logs")
 
 def train():
 

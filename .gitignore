@@ -1,8 +1,9 @@
 # Python
 .venv/
-venv/
-env/
+/venv/
+/env/
 airplane_env/
+!src/env/
 __pycache__/
 *.py[cod]
 *.egg-info/

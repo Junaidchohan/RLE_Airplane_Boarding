@@ -1,10 +1,15 @@
 import sys
+import os
 import traceback
+from pathlib import Path
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-import airplane_boarding
-from airplane_boarding import AirplaneEnv, PassengerStatus
+import src.env.airplane_boarding as airplane_boarding
+from src.env.airplane_boarding import AirplaneEnv, PassengerStatus
 
 
 def check_1_task():

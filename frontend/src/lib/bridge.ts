@@ -22,6 +22,9 @@ function getPythonPath(): string {
   const isWindows = process.platform === 'win32';
   const rootDir = path.resolve(process.cwd(), '..');
   if (isWindows) {
+    const fs = require('fs');
+    const venvPython = path.join(rootDir, '.venv', 'Scripts', 'python.exe');
+    if (fs.existsSync(venvPython)) return venvPython;
     return path.join(rootDir, 'airplane_env', 'Scripts', 'python.exe');
   }
   return path.join(rootDir, '.venv', 'bin', 'python');
@@ -32,12 +35,15 @@ function startBridge(): ChildProcess {
     return globalAny.__bridgeProcess;
   }
 
+  const rootDir = path.resolve(process.cwd(), '..');
   const pythonPath = getPythonPath();
-  const bridgeScript = path.resolve(process.cwd(), '..', 'bridge.py');
+  const bridgeScript = path.resolve(rootDir, 'src', 'server', 'bridge.py');
 
   console.log(`[bridge] Spawning python bridge: ${pythonPath} ${bridgeScript}`);
 
   const proc = spawn(pythonPath, [bridgeScript], {
+    cwd: rootDir,
+    env: { ...process.env, PYTHONPATH: rootDir },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 

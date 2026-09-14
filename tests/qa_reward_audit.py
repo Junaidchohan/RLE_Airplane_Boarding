@@ -2,8 +2,13 @@
 QA Reward Audit: Deterministic fixed-seed episode with step-by-step reward trace.
 Confirms: cumulative sum == total; reward density; can random policy score > 0?
 """
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import gymnasium as gym
-import airplane_boarding  # noqa
+import src.env.airplane_boarding as airplane_boarding  # noqa
 
 SEED = 42
 

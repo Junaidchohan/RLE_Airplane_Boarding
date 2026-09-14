@@ -328,7 +328,7 @@ def my_check_env():
 # When running this code, you can ignore this warning: "UserWarning: WARN: Overriding environment airplane-boarding-v0 already in registry."
 register(
     id='airplane-boarding-v0',
-    entry_point='airplane_boarding:AirplaneEnv', # module_name:class_name
+    entry_point='src.env.airplane_boarding:AirplaneEnv', # module_name:class_name
 )
 
 if __name__ == "__main__":

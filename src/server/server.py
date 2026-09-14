@@ -1,9 +1,13 @@
+import sys
 import os
 from typing import Optional, Literal
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from rle_core import AirplaneBoardingSession
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+from src.core.rle_core import AirplaneBoardingSession
 
 app = FastAPI(title="Airplane Boarding RLE Backend", version="1.0.0")
 

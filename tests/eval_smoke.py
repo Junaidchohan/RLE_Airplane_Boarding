@@ -1,9 +1,16 @@
+import sys
+import os
+from pathlib import Path
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import gymnasium as gym
-import airplane_boarding  # noqa: F401
+import src.env.airplane_boarding  # noqa: F401
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.utils import get_action_masks
 
-MODEL_PATH = "models/smoke_test_model/model"
+REPO_ROOT = Path(__file__).resolve().parent.parent
+MODEL_PATH = os.path.join(REPO_ROOT, "models", "smoke_test_model", "model")
 
 env = gym.make("airplane-boarding-v0", num_of_rows=5, seats_per_row=5)
 model = MaskablePPO.load(MODEL_PATH, env=env)

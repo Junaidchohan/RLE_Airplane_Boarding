@@ -1,6 +1,10 @@
 import sys
+import os
 import json
-from rle_core import AirplaneBoardingSession
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+from src.core.rle_core import AirplaneBoardingSession
 from stable_baselines3.common.callbacks import BaseCallback
 
 def main():

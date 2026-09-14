@@ -1,17 +1,20 @@
 import os
 import sys
 import time
+from pathlib import Path
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
 import gymnasium as gym
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv
 from sb3_contrib import MaskablePPO
-from airplane_boarding import AirplaneEnv
+from src.env.airplane_boarding import AirplaneEnv
 
 
 def main():
-    project_root = os.path.dirname(os.path.abspath(__file__))
-    out_dir = os.path.join(project_root, "models", "frontend_10x5")
+    repo_root = Path(__file__).resolve().parent.parent
+    out_dir = os.path.join(repo_root, "models", "frontend_10x5")
     os.makedirs(out_dir, exist_ok=True)
     save_path = os.path.join(out_dir, "model")
 

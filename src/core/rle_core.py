@@ -2,11 +2,15 @@ import sys
 import os
 import random
 import contextlib
+from pathlib import Path
 import gymnasium as gym
-import airplane_boarding
+from src.env.airplane_boarding import AirplaneEnv, PassengerStatus
+import src.env.airplane_boarding as airplane_boarding
 from sb3_contrib import MaskablePPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import DummyVecEnv
+
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 def get_state(env, step_count, reward_step, reward_total, terminated, action, message=None):
     unwrapped = env.unwrapped
@@ -100,8 +104,7 @@ class AirplaneBoardingSession:
         self.load_model()
         
     def load_model(self):
-        project_root = os.path.dirname(os.path.abspath(__file__))
-        model_path = os.path.join(project_root, "models", "frontend_10x5", "model.zip")
+        model_path = os.path.join(REPO_ROOT, "models", "frontend_10x5", "model.zip")
         self.has_model = os.path.exists(model_path)
         if self.has_model:
             try:
@@ -170,7 +173,7 @@ class AirplaneBoardingSession:
 
     def train(self, timesteps=20000, stream_callback=None):
         train_env = make_vec_env(
-            airplane_boarding.AirplaneEnv,
+            AirplaneEnv,
             n_envs=2,
             env_kwargs={"num_of_rows": 10, "seats_per_row": 5},
             vec_env_cls=DummyVecEnv,
@@ -182,8 +185,7 @@ class AirplaneBoardingSession:
         else:
             train_model.learn(total_timesteps=timesteps)
             
-        project_root = os.path.dirname(os.path.abspath(__file__))
-        out_dir = os.path.join(project_root, "models", "frontend_20k")
+        out_dir = os.path.join(REPO_ROOT, "models", "frontend_20k")
         os.makedirs(out_dir, exist_ok=True)
         save_path = os.path.join(out_dir, "model")
         train_model.save(save_path)

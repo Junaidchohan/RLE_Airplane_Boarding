@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rle-airplane-boarding"
+version = "0.1.0"
+description = "A verifiable Reinforcement Learning Environment for airplane boarding optimization."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+dependencies = [
+    "gymnasium>=1.0.0",
+    "numpy<2",
+    "torch",
+    "stable-baselines3",
+    "sb3-contrib",
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+]
+
+[tool.setuptools]
+packages = ["src", "src.env", "src.core", "src.server", "training", "tests"]
+
+[tool.setuptools.package-dir]
+"" = "."
