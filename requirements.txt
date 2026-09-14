@@ -1,0 +1,9 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+gymnasium
+numpy<2
+stable-baselines3
+sb3-contrib
+fastapi
+uvicorn[standard]
+pydantic

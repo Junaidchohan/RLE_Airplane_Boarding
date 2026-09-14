@@ -14,6 +14,10 @@ const globalAny = globalThis as any;
 if (!globalAny.__bridgeProcess) globalAny.__bridgeProcess = null;
 if (!globalAny.__commandQueue) globalAny.__commandQueue = [];
 
+function getBackendUrl(): string | undefined {
+  return process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL;
+}
+
 function getPythonPath(): string {
   const isWindows = process.platform === 'win32';
   const rootDir = path.resolve(process.cwd(), '..');
@@ -114,7 +118,49 @@ function startBridge(): ChildProcess {
   return proc;
 }
 
-export function sendCommand(obj: any, onData?: (data: any) => void): Promise<any> {
+export async function sendCommand(obj: any, onData?: (data: any) => void): Promise<any> {
+  const backendUrl = getBackendUrl();
+
+  // If remote HTTP backend URL is configured (e.g. on Render)
+  if (backendUrl) {
+    const baseUrl = backendUrl.replace(/\/+$/, '');
+    if (obj.cmd === 'state') {
+      const res = await fetch(`${baseUrl}/state`, { cache: 'no-store' });
+      return res.json();
+    } else if (obj.cmd === 'reset') {
+      const res = await fetch(`${baseUrl}/reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          seed: obj.seed,
+          num_of_rows: obj.num_of_rows,
+          seats_per_row: obj.seats_per_row,
+        }),
+      });
+      return res.json();
+    } else if (obj.cmd === 'step') {
+      const res = await fetch(`${baseUrl}/step`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: obj.action,
+          policy: obj.policy,
+        }),
+      });
+      return res.json();
+    } else if (obj.cmd === 'train') {
+      const res = await fetch(`${baseUrl}/train`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timesteps: obj.timesteps ?? 20000 }),
+      });
+      const data = await res.json();
+      if (onData) onData(data);
+      return data;
+    }
+  }
+
+  // Local fallback: spawn python child process bridge
   return new Promise((resolve, reject) => {
     let proc = globalAny.__bridgeProcess;
     if (!proc || proc.killed) {
@@ -126,7 +172,7 @@ export function sendCommand(obj: any, onData?: (data: any) => void): Promise<any
     }
 
     const isTrain = obj.cmd === 'train';
-    const timeoutMs = isTrain ? 120000 : 15000; // 15s for regular commands, 2min for train
+    const timeoutMs = isTrain ? 120000 : 15000;
 
     const queueItem: QueueItem = {
       cmd: obj.cmd,

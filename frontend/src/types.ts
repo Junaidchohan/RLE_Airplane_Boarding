@@ -1,6 +1,12 @@
 export type PassengerState = 'empty' | 'stowing' | 'seated';
 export type AisleStatus = 'MOVING' | 'STALLED' | 'STOWING';
 
+export interface ChartDataPoint {
+  step: number;
+  reward: number;
+  stalled: number;
+}
+
 export interface SeatData {
   seat_num: number;
   state: PassengerState;

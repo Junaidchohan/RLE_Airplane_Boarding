@@ -1,5 +1,5 @@
 'use client';
-import { motion } from 'framer-motion';
+import { motion, TargetAndTransition } from 'framer-motion';
 import { cn } from '@/lib/cn';
 
 export type SpriteState = 'IDLE' | 'WALKING' | 'STOWING' | 'SEATED';
@@ -48,7 +48,7 @@ export default function PassengerSprite({
   }[size];
 
   // Motion variants
-  const getMotionAnimation = () => {
+  const getMotionAnimation = (): TargetAndTransition => {
     if (isStalled) {
       return {
         x: [0, -1.5, 1.5, -1.5, 0],
